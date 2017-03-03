@@ -45,9 +45,10 @@ Pager.prototype.set = function (i, buf) {
   }
 
   var page = this.pages[i]
+  var b = truncate(buf, this.pageSize)
 
-  if (page) page.buffer = truncate(buf, this.pageSize)
-  else page = this.pages[i] = new Page(i, truncate(buf, this.pageSize))
+  if (page) page.buffer = b
+  else this.pages[i] = new Page(i, b)
 }
 
 Pager.prototype.toBuffer = function () {
@@ -71,7 +72,7 @@ function grow (list, index, len) {
 }
 
 function truncate (buf, len) {
-  if (buf.length === len) return len
+  if (buf.length === len) return buf
   if (buf.length > len) return buf.slice(0, len)
   var cpy = alloc(len)
   buf.copy(cpy)
