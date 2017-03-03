@@ -1,6 +1,6 @@
 {
   "name": "memory-pager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Access memory using small fixed sized buffers",
   "main": "index.js",
   "dependencies": {},
