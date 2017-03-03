@@ -47,7 +47,7 @@ Pager.prototype.set = function (i, buf) {
   var page = this.pages[i]
 
   if (page) page.buffer = truncate(buf, this.pageSize)
-  else page = this.pages[i] = new Page(i, buf)
+  else page = this.pages[i] = new Page(i, truncate(buf, this.pageSize))
 }
 
 Pager.prototype.toBuffer = function () {
