@@ -22,12 +22,15 @@ Pager.prototype.lastUpdate = function () {
   return page
 }
 
-Pager.prototype.get = function (i, noMutate) {
-  if (i >= this.pages.length) this.pages = grow(this.pages, i, this.length)
+Pager.prototype.get = function (i, noAllocate) {
+  if (i >= this.pages.length) {
+    if (noAllocate) return
+    this.pages = grow(this.pages, i, this.length)
+  }
 
   var page = this.pages[i]
 
-  if (!page && !noMutate) {
+  if (!page && !noAllocate) {
     page = this.pages[i] = new Page(i, alloc(this.pageSize))
     if (i >= this.length) this.length = i + 1
   }
