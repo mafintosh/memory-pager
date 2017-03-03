@@ -46,7 +46,7 @@ Pager.prototype.set = function (i, buf) {
 
   var page = this.pages[i]
 
-  if (page) page.buffer = buf
+  if (page) page.buffer = truncate(buf, this.pageSize)
   else page = this.pages[i] = new Page(i, buf)
 }
 
@@ -68,6 +68,14 @@ function grow (list, index, len) {
   var twice = new Array(nlen)
   for (var i = 0; i < len; i++) twice[i] = list[i]
   return twice
+}
+
+function truncate (buf, len) {
+  if (buf.length === len) return len
+  if (buf.length > len) return buf.slice(0, len)
+  var cpy = alloc(len)
+  buf.copy(cpy)
+  return cpy
 }
 
 function alloc (size) {
