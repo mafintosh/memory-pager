@@ -5,7 +5,7 @@ function Pager (pageSize) {
 
   this.length = 0
   this.updates = []
-  this.pages = new Array(16 * 1024)
+  this.pages = new Array(16)
   this.pageSize = pageSize || 1024
 }
 
