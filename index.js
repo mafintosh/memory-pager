@@ -1,12 +1,13 @@
 module.exports = Pager
 
-function Pager (pageSize) {
-  if (!(this instanceof Pager)) return new Pager(pageSize)
+function Pager (pageSize, opts) {
+  if (!(this instanceof Pager)) return new Pager(pageSize, opts)
 
   this.length = 0
   this.updates = []
   this.pages = new Array(16)
   this.pageSize = pageSize || 1024
+  this.deduplicate = opts ? opts.deduplicate : null
 }
 
 Pager.prototype.updated = function (page) {
@@ -35,6 +36,10 @@ Pager.prototype.get = function (i, noAllocate) {
     if (i >= this.length) this.length = i + 1
   }
 
+  if (page && page.buffer === this.deduplicate && this.deduplicate && !noAllocate) {
+    page.buffer = copy(page.buffer)
+  }
+
   return page
 }
 
@@ -44,6 +49,11 @@ Pager.prototype.set = function (i, buf) {
 
   if (!buf) {
     this.pages[i] = undefined
+    return
+  }
+
+  if (this.deduplicate && buf.equals && buf.equals(this.deduplicate)) {
+    buf = this.deduplicate
     return
   }
 
@@ -87,6 +97,12 @@ function alloc (size) {
   var buf = new Buffer(size)
   buf.fill(0)
   return buf
+}
+
+function copy (buf) {
+  var cpy = Buffer.allocUnsafe ? Buffer.allocUnsafe(buf.length) : new Buffer(buf.length)
+  buf.copy(cpy)
+  return cpy
 }
 
 function Page (i, buf) {
