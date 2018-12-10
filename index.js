@@ -11,6 +11,14 @@ function Pager (pageSize, opts) {
 }
 
 Pager.prototype.updated = function (page) {
+  while (this.deduplicate && page.buffer[page.deduplicate] === this.deduplicate[page.deduplicate]) {
+    page.deduplicate++
+    if (page.deduplicate === this.deduplicate.length) {
+      page.deduplicate = 0
+      if (page.buffer.equals && page.buffer.equals(this.deduplicate)) page.buffer = this.deduplicate
+      break
+    }
+  }
   if (page.updated || !this.updates) return
   page.updated = true
   this.updates.push(page)
@@ -38,6 +46,7 @@ Pager.prototype.get = function (i, noAllocate) {
 
   if (page && page.buffer === this.deduplicate && this.deduplicate && !noAllocate) {
     page.buffer = copy(page.buffer)
+    page.deduplicate = 0
   }
 
   return page
@@ -109,4 +118,5 @@ function Page (i, buf) {
   this.offset = i * buf.length
   this.buffer = buf
   this.updated = false
+  this.deduplicate = 0
 }
