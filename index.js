@@ -63,7 +63,6 @@ Pager.prototype.set = function (i, buf) {
 
   if (this.deduplicate && buf.equals && buf.equals(this.deduplicate)) {
     buf = this.deduplicate
-    return
   }
 
   var page = this.pages[i]
