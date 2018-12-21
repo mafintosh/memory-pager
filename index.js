@@ -8,6 +8,7 @@ function Pager (pageSize, opts) {
   this.pages = new Array(16)
   this.pageSize = pageSize || 1024
   this.deduplicate = opts ? opts.deduplicate : null
+  this.zeros = this.deduplicate ? alloc(this.deduplicate.length) : null
 }
 
 Pager.prototype.updated = function (page) {
@@ -56,7 +57,7 @@ Pager.prototype.set = function (i, buf) {
   if (i >= this.pages.length) this.pages = grow(this.pages, i, this.length)
   if (i >= this.length) this.length = i + 1
 
-  if (!buf) {
+  if (!buf || (this.zeros && buf.equals && buf.equals(this.zeros))) {
     this.pages[i] = undefined
     return
   }
