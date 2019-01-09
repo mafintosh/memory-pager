@@ -5,7 +5,10 @@ function Pager (pageSize, opts) {
 
   this.length = 0
   this.updates = []
-  this.pages = new Array(16)
+  this.path = new Uint16Array(4)
+  this.pages = new Array(32768)
+  this.maxPages = this.pages.length
+  this.level = 0
   this.pageSize = pageSize || 1024
   this.deduplicate = opts ? opts.deduplicate : null
   this.zeros = this.deduplicate ? alloc(this.deduplicate.length) : null
@@ -32,16 +35,38 @@ Pager.prototype.lastUpdate = function () {
   return page
 }
 
-Pager.prototype.get = function (i, noAllocate) {
-  if (i >= this.pages.length) {
+Pager.prototype._array = function (i, noAllocate) {
+  if (i >= this.maxPages) {
     if (noAllocate) return
-    this.pages = grow(this.pages, i, this.length)
+    grow(this, i)
   }
 
-  var page = this.pages[i]
+  factor(i, this.path)
+
+  var arr = this.pages
+
+  for (var j = this.level; j > 0; j--) {
+    var p = this.path[j]
+    var next = arr[p]
+
+    if (!next) {
+      if (noAllocate) return
+      next = arr[p] = new Array(32768)
+    }
+
+    arr = next
+  }
+
+  return arr
+}
+
+Pager.prototype.get = function (i, noAllocate) {
+  var arr = this._array(i, noAllocate)
+  var first = this.path[0]
+  var page = arr && arr[first]
 
   if (!page && !noAllocate) {
-    page = this.pages[i] = new Page(i, alloc(this.pageSize))
+    page = arr[first] = new Page(i, alloc(this.pageSize))
     if (i >= this.length) this.length = i + 1
   }
 
@@ -54,11 +79,13 @@ Pager.prototype.get = function (i, noAllocate) {
 }
 
 Pager.prototype.set = function (i, buf) {
-  if (i >= this.pages.length) this.pages = grow(this.pages, i, this.length)
+  var arr = this._array(i, false)
+  var first = this.path[0]
+
   if (i >= this.length) this.length = i + 1
 
   if (!buf || (this.zeros && buf.equals && buf.equals(this.zeros))) {
-    this.pages[i] = undefined
+    arr[first] = undefined
     return
   }
 
@@ -66,31 +93,36 @@ Pager.prototype.set = function (i, buf) {
     buf = this.deduplicate
   }
 
-  var page = this.pages[i]
+  var page = arr[first]
   var b = truncate(buf, this.pageSize)
 
   if (page) page.buffer = b
-  else this.pages[i] = new Page(i, b)
+  else arr[first] = new Page(i, b)
 }
 
 Pager.prototype.toBuffer = function () {
   var list = new Array(this.length)
   var empty = alloc(this.pageSize)
+  var ptr = 0
 
-  for (var i = 0; i < list.length; i++) {
-    list[i] = this.pages[i] ? this.pages[i].buffer : empty
+  while (ptr < list.length) {
+    var arr = this._array(ptr, true)
+    for (var i = 0; i < 32768 && ptr < list.length; i++) {
+      list[ptr++] = (arr && arr[i]) ? arr[i].buffer : empty
+    }
   }
 
   return Buffer.concat(list)
 }
 
-function grow (list, index, len) {
-  var nlen = list.length * 2
-  while (nlen <= index) nlen *= 2
-
-  var twice = new Array(nlen)
-  for (var i = 0; i < len; i++) twice[i] = list[i]
-  return twice
+function grow (pager, index) {
+  while (pager.maxPages < index) {
+    var old = pager.pages
+    pager.pages = new Array(32768)
+    pager.pages[0] = old
+    pager.level++
+    pager.maxPages *= 32768
+  }
 }
 
 function truncate (buf, len) {
@@ -119,4 +151,10 @@ function Page (i, buf) {
   this.buffer = buf
   this.updated = false
   this.deduplicate = 0
+}
+
+function factor (n, out) {
+  n = (n - (out[0] = (n & 32767))) / 32768
+  n = (n - (out[1] = (n & 32767))) / 32768
+  out[3] = ((n - (out[2] = (n & 32767))) / 32768) & 32767
 }
