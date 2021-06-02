@@ -3,8 +3,6 @@
 Access memory using small fixed sized buffers instead of allocating a huge buffer.
 Useful if you are implementing sparse data structures (such as large bitfield).
 
-![travis](https://travis-ci.org/mafintosh/memory-pager.svg?branch=master)
-
 ```
 npm install memory-pager
 ```
