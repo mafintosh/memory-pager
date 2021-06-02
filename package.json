@@ -3,13 +3,14 @@
   "version": "1.5.0",
   "description": "Access memory using small fixed sized buffers",
   "main": "index.js",
-  "dependencies": {},
   "devDependencies": {
-    "standard": "^9.0.0",
-    "tape": "^4.6.3"
+    "standard": "^16.0.3",
+    "tape": "^5.2.2"
   },
   "scripts": {
-    "test": "standard && tape test.js"
+    "lint": "standard",
+    "unit": "tape test.js",
+    "test": "npm run lint && npm run test"
   },
   "repository": {
     "type": "git",

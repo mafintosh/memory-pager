@@ -3,8 +3,6 @@
 Access memory using small fixed sized buffers instead of allocating a huge buffer.
 Useful if you are implementing sparse data structures (such as large bitfield).
 
-![travis](https://travis-ci.org/mafintosh/memory-pager.svg?branch=master)
-
 ```
 npm install memory-pager
 ```
@@ -12,9 +10,9 @@ npm install memory-pager
 ## Usage
 
 ``` js
-var pager = require('paged-memory')
+var Pager = require('paged-memory')
 
-var pages = pager(1024) // use 1kb per page
+var pages = new Pager(1024) // use 1kb per page
 
 var page = pages.get(10) // get page #10
 
@@ -24,7 +22,7 @@ console.log(page.buffer) // a blank 1kb buffer
 
 ## API
 
-#### `var pages = pager(pageSize)`
+#### `var pages = new Pager(pageSize)`
 
 Create a new pager. `pageSize` defaults to `1024`.
 
