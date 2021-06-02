@@ -12,9 +12,9 @@ npm install memory-pager
 ## Usage
 
 ``` js
-var pager = require('paged-memory')
+var Pager = require('paged-memory')
 
-var pages = pager(1024) // use 1kb per page
+var pages = new Pager(1024) // use 1kb per page
 
 var page = pages.get(10) // get page #10
 
@@ -24,7 +24,7 @@ console.log(page.buffer) // a blank 1kb buffer
 
 ## API
 
-#### `var pages = pager(pageSize)`
+#### `var pages = new Pager(pageSize)`
 
 Create a new pager. `pageSize` defaults to `1024`.
 
